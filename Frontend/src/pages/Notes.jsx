@@ -21,6 +21,7 @@ export default function Notes() {
           id: note._id,
           title: note.title,
           content: note.content,
+          createdAt: note.createdAt,
           date: new Date(note.createdAt).toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
@@ -28,7 +29,12 @@ export default function Notes() {
           }),
         }));
 
-        setNotes(formattedNotes);
+        // Sort notes from latest to oldest
+        const sortedNotes = formattedNotes.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        setNotes(sortedNotes);
       } catch (err) {
         console.error("Error fetching notes:", err);
         setError("Failed to load notes");
