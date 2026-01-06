@@ -9,7 +9,12 @@ import connectDB from "./config/db.js";
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: "*", // later you can restrict this
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 //route middlewares
