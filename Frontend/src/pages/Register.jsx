@@ -10,6 +10,7 @@ export default function Register() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    role: "user",
     password: "",
   });
 
@@ -109,6 +110,29 @@ export default function Register() {
                   className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   required
                 />
+              </div>
+            </div>
+
+            {/* Role Field */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Role
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-3 text-gray-400">👔</span>
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none bg-white"
+                  required
+                >
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </select>
+                <span className="absolute right-3 top-3 text-gray-400 pointer-events-none">
+                  ▼
+                </span>
               </div>
             </div>
 
