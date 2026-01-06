@@ -30,14 +30,17 @@ export default function Home() {
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mb-20">
           <Link
-            to="/register"
+            to="/notes/create"
             className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2"
           >
             Start Writing <span>→</span>
           </Link>
-          <button className="border-2 border-gray-300 hover:border-gray-400 text-gray-700 px-8 py-3 rounded-lg font-semibold transition">
-            View Demo
-          </button>
+          <Link
+            to="/notes"
+            className="border-2 border-gray-300 hover:border-gray-400 text-gray-700 px-8 py-3 rounded-lg font-semibold transition"
+          >
+            View Notes
+          </Link>
         </div>
 
         {/* Feature Section */}
