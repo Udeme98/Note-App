@@ -1,49 +1,66 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Clock, Pencil, Trash2 } from "lucide-react";
 import api from "../api/axios";
 import toast from "react-hot-toast";
 
-export default function NoteDetails() {
-  const [note, setNote] = useState(null);
+export default function EditNote() {
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
   const { id } = useParams();
 
   useEffect(() => {
+    const fetchNote = async () => {
+      try {
+        const res = await api.get(`/notes/${id}`);
+        const note = res.data.data;
+        setTitle(note.title);
+        setContent(note.content);
+      } catch (err) {
+        console.error("Error fetching note:", err);
+        toast.error("Failed to load note");
+        navigate("/notes");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchNote();
-  }, [id]);
+  }, [id, navigate]);
 
-  const fetchNote = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get(`/notes/${id}`);
-      const noteData = res.data.data;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-      setNote({
-        id: noteData._id,
-        title: noteData.title,
-        content: noteData.content,
-        createdAt: noteData.createdAt,
-        date: new Date(noteData.createdAt).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        }),
-      });
-    } catch (err) {
-      console.error("Error fetching note:", err);
-      toast.error("Failed to load note");
-      navigate("/notes");
-    } finally {
-      setLoading(false);
+    if (!title.trim()) {
+      toast.error("Please enter a note title");
+      return;
     }
-  };
 
-  const handleEdit = () => {
-    navigate(`/notes/edit/${id}`);
+    if (!content.trim()) {
+      toast.error("Please enter note content");
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      await api.put(`/notes/${id}`, {
+        title: title.trim(),
+        content: content.trim(),
+      });
+
+      toast.success("Note updated successfully!");
+      navigate("/notes");
+    } catch (err) {
+      console.error("Error updating note:", err);
+      toast.error(err.response?.data?.message || "Failed to update note");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDeleteClick = () => {
@@ -76,14 +93,6 @@ export default function NoteDetails() {
     );
   }
 
-  if (!note) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-500 text-lg">Note not found</div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header with back button */}
@@ -111,21 +120,18 @@ export default function NoteDetails() {
 
           <div className="flex items-center gap-3">
             <button
-              onClick={handleEdit}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition"
-              title="Edit note"
+              onClick={handleDeleteClick}
+              disabled={saving || isDeleting}
+              className="bg-red-600 hover:bg-red-700 disabled:bg-red-300 text-white px-6 py-2 rounded-lg font-medium transition"
             >
-              <Pencil className="w-4 h-4" />
-              <span>Edit</span>
+              Delete
             </button>
             <button
-              onClick={handleDeleteClick}
-              disabled={isDeleting}
-              className="flex items-center gap-2 bg-red-600 hover:bg-red-700 disabled:bg-red-300 text-white px-4 py-2 rounded-lg font-medium transition"
-              title="Delete note"
+              onClick={handleSubmit}
+              disabled={saving || isDeleting}
+              className="bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white px-6 py-2 rounded-lg font-medium transition"
             >
-              <Trash2 className="w-4 h-4" />
-              <span>Delete</span>
+              {saving ? "Saving..." : "Save"}
             </button>
           </div>
         </div>
@@ -133,30 +139,30 @@ export default function NoteDetails() {
 
       {/* Main content */}
       <div className="max-w-4xl mx-auto px-6 py-8">
-        <div className="bg-white rounded-lg shadow-sm">
-          {/* Title */}
-          <div className="px-8 py-6">
-            <h1 className="text-4xl font-semibold text-gray-800 break-words">
-              {note.title}
-            </h1>
-          </div>
-
-          {/* Date */}
-          <div className="px-8 pb-4 flex items-center text-gray-500 text-sm">
-            <Clock className="w-4 h-4 mr-2" />
-            {note.date}
-          </div>
+        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm">
+          {/* Title Input */}
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Note title..."
+            className="w-full px-8 py-6 text-4xl font-semibold text-gray-800 placeholder-gray-300 border-none focus:outline-none focus:ring-0 rounded-t-lg"
+            maxLength={100}
+          />
 
           {/* Divider */}
           <div className="border-t border-gray-100"></div>
 
-          {/* Content */}
-          <div className="px-8 py-6">
-            <p className="text-lg text-gray-700 whitespace-pre-wrap break-words leading-relaxed">
-              {note.content}
-            </p>
-          </div>
-        </div>
+          {/* Content Textarea */}
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Start writing your note..."
+            className="w-full px-8 py-6 text-lg text-gray-700 placeholder-gray-300 border-none focus:outline-none focus:ring-0 resize-none rounded-b-lg"
+            rows={20}
+            style={{ minHeight: "500px" }}
+          />
+        </form>
       </div>
 
       {/* Delete Confirmation Dialog */}

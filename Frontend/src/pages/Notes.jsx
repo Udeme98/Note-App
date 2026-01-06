@@ -11,40 +11,45 @@ export default function Notes() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchNotes = async () => {
-      try {
-        const res = await api.get("/notes");
-
-        // Normalize backend data for UI
-        const notesData = res.data.data || [];
-        const formattedNotes = notesData.map((note) => ({
-          id: note._id,
-          title: note.title,
-          content: note.content,
-          createdAt: note.createdAt,
-          date: new Date(note.createdAt).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          }),
-        }));
-
-        // Sort notes from latest to oldest
-        const sortedNotes = formattedNotes.sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        );
-
-        setNotes(sortedNotes);
-      } catch (err) {
-        console.error("Error fetching notes:", err);
-        setError("Failed to load notes");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchNotes();
   }, []);
+
+  const fetchNotes = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/notes");
+
+      // Normalize backend data for UI
+      const notesData = res.data.data || [];
+      const formattedNotes = notesData.map((note) => ({
+        id: note._id,
+        title: note.title,
+        content: note.content,
+        createdAt: note.createdAt,
+        date: new Date(note.createdAt).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+      }));
+
+      // Sort notes from latest to oldest
+      const sortedNotes = formattedNotes.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+
+      setNotes(sortedNotes);
+    } catch (err) {
+      console.error("Error fetching notes:", err);
+      setError("Failed to load notes");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteNote = (noteId) => {
+    setNotes((prevNotes) => prevNotes.filter((note) => note.id !== noteId));
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -84,9 +89,13 @@ export default function Notes() {
               No notes yet. Create your first note!
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
               {notes.map((note) => (
-                <NoteCard key={note.id} note={note} />
+                <NoteCard
+                  key={note.id}
+                  note={note}
+                  onDelete={handleDeleteNote}
+                />
               ))}
             </div>
           )}
